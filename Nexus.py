@@ -1,6 +1,6 @@
 import os
 import openai
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_cors import CORS  # Import CORS
 from dotenv import load_dotenv
 
@@ -24,10 +24,28 @@ def process_ai_command(command):
     else:
         return "I didn't understand that. Can you try again?"
 
-# Route to serve the index.html page
+# Route to serve the login page
 @app.route('/')
-def home():
-    return render_template("index.html")  # Loads index.html from templates folder
+def login():
+    return render_template("index_login.html")  # Load the login page first
+
+# Route to handle login
+@app.route('/login', methods=['POST'])
+def handle_login():
+    data = request.json
+    username = data.get("username", "")
+    password = data.get("password", "")
+
+    # Check credentials (for now, hardcoding as "jk33" and "3328")
+    if username == "jk33" and password == "3328":
+        return jsonify({"redirect": url_for('dashboard')})  # Redirect to the main dashboard
+    else:
+        return jsonify({"error": "Invalid credentials"}), 401
+
+# Route to serve the CEO dashboard
+@app.route('/dashboard')
+def dashboard():
+    return render_template("index.html")  # Load the main dashboard after login
 
 # Route to handle voice commands
 @app.route('/process_command', methods=['POST'])
