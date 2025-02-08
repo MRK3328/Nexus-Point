@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEO Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            background: radial-gradient(circle, rgba(10, 0, 0, 1) 0%, rgba(20, 0, 10, 1) 100%);
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 0 0 16px red, 0 0 35px darkred;
+            margin-bottom: 30px;
+        }
+
+        #clock {
+            font-size: 36px;
+            font-weight: bold;
+            text-shadow: 0 0 10px red, 0 0 20px darkred;
+            margin-bottom: 40px;
+        }
+
+        #temperature {
+            font-size: 20px;
+            font-weight: bold;
+            color: red;
+            text-shadow: 0 0 10px red, 0 0 20px darkred;
+            position: absolute;
+            right: 35%;
+            top: 40%;
+            transform: translateY(-50%);
+        }
+
+        .circle-container {
+            position: relative;
+            width: 420px;
+            height: 420px;
+            border-radius: 50%;
+            background: rgba(100, 0, 0, 0.3);
+            box-shadow: 0 0 40px red, 0 0 80px darkred;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .central-circle {
+            width: 110px;
+            height: 110px;
+            background: rgba(100, 0, 0, 0.7);
+            border: 3px solid #FF073A;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            font-size: 1.6em;
+            box-shadow: 0 0 30px red, 0 0 60px darkred;
+            text-shadow: 0 0 12px red;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .central-circle:hover {
+            transform: scale(1.15);
+        }
+
+        .app-icon {
+            width: 75px;
+            height: 75px;
+            background: rgba(100, 0, 0, 0.6);
+            border: 2px solid red;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            position: absolute;
+            cursor: pointer;
+            box-shadow: 0 0 15px red;
+            transition: transform 0.3s;
+        }
+
+        .app-icon:hover {
+            transform: scale(1.3);
+        }
+
+        .app1 { top: 4%; left: 50%; transform: translate(-50%, 0); }
+        .app2 { right: 4%; top: 50%; transform: translate(0, -50%); }
+        .app3 { bottom: 4%; left: 50%; transform: translate(-50%, 0); }
+        .app4 { left: 4%; top: 50%; transform: translate(0, -50%); }
+        .extra1 { top: 18%; left: 18%; }
+        .extra2 { top: 18%; right: 18%; }
+        .extra3 { bottom: 18%; left: 18%; }
+        .extra4 { bottom: 18%; right: 18%; }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 15px red; }
+            50% { box-shadow: 0 0 30px darkred; }
+            100% { box-shadow: 0 0 15px red; }
+        }
+
+        .app-icon, .central-circle {
+            animation: glow 2s infinite alternate;
+        }
+    </style>
+</head>
+<body>
+    <h1>CEO: JK33</h1>
+    <div id="clock"></div>
+    <div id="temperature">🌡️ --°F</div>
+    <div class="circle-container">
+        <div class="central-circle">CEO</div>
+        <div class="app-icon app1">📷</div>
+        <div class="app-icon app2">👥</div>
+        <div class="app-icon app3">⚙️</div>
+        <div class="app-icon app4">🌐</div>
+        <div class="app-icon extra1">🎵</div>
+        <div class="app-icon extra2">💬</div>
+        <div class="app-icon extra3">📁</div>
+        <div class="app-icon extra4">🕹️</div>
+    </div>
+
+    <script>
+        // 🔐 Restrict access to logged-in users only
+        if (localStorage.getItem("isLoggedIn") !== "true") {
+            window.location.href = "index_login.html";
+        }
+
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById('clock').innerText = `${hours}:${minutes}`;
+        }
+
+        function updateTemperature() {
+            navigator.geolocation.getCurrentPosition(position => {
+                fetch(`https://api.weatherapi.com/v1/current.json?key=YOUR_API_KEY&q=${position.coords.latitude},${position.coords.longitude}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('temperature').innerText = `🌡️ ${data.current.temp_f}°F`;
+                    });
+            });
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+        updateTemperature();
+
+        // 🎤 AI Voice Command Setup
+        const ceoButton = document.querySelector('.central-circle');
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US';
+
+        ceoButton.addEventListener('click', () => {
+            recognition.start();
+        });
+
+        recognition.onresult = (event) => {
+            let command = event.results[0][0].transcript;
+            console.log("User Command:", command);
+
+            // Send command to Flask backend
+            fetch('/process_command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: command })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("AI Response:", data.message);
+                alert("AI: " + data.message);  // Show AI response in an alert
+            });
+        };
+
+        recognition.onend = () => {
+            console.log("Voice command ended.");
+        };
+
+        // 🔴 Logout Feature
+        function logout() {
+            localStorage.removeItem("isLoggedIn");
+            window.location.href = "index_login.html";
+        }
+    </script>
+
+    <button onclick="logout()">Logout</button>
+</body>
+</html>
