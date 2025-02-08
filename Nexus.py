@@ -36,6 +36,6 @@ def process_command():
     ai_response = process_ai_command(command)
     return jsonify({"message": ai_response})
 
-# Run the Flask app
+# Run the Flask app for deployment
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=10000)  # Adjusted for Render deployment
